@@ -1,0 +1,40 @@
+<?php
+// Configurações gerais
+$string['pluginname'] = 'Gerenciamento de CFCS';
+
+$string['managementheading'] = 'Gerenciamento de CFCS';
+$string['usersettings'] = 'Usuários';
+$string['cfcs'] = 'CFCS';
+$string['rolesettings'] = 'Funções';
+$string['default_user_role'] = 'Papel Padrão do Usuário';
+$string['default_user_role_desc'] = 'Escolha o papel padrão dos usuários dentro da empresa.';
+$string['enable_roles'] = 'Ativar gerenciamento de funções';
+$string['enable_roles_desc'] = 'Habilitar ou desabilitar a funcionalidade de gerenciamento de funções.';
+$string['companyregister'] = 'Cadastro de Empresa';
+$string['productregister'] = 'Cadastro de Produto';
+$string['name'] = 'Nome';
+$string['razaosocial'] = 'Razão Social';
+$string['cnpj'] = 'CNPJ';
+$string['gestor'] = 'Gestor';
+$string['linkedin'] = 'Página do LinkedIn';
+$string['submit'] = 'Cadastrar';
+$string['created'] = 'Cadastrado efetuado com sucesso!'; 
+$string['invalidcnpj'] = 'CNPJ inválido. Deve conter 14 dígitos numéricos.';
+$string['gestorsection'] = 'Menu do Gestor';
+$string['viewcompanies'] = 'Visualizar cfc';
+$string['manageusers'] = 'Gerenciar Usuários';
+$string['store'] = 'Gerenciar créditos';
+$string['credits'] = 'Gerenciamento de créditos';
+$string['productmanager'] = 'Gerenciamento de produtos';
+$string['produto'] = 'Escolha o Produto';
+$string['empresaform'] = 'Formulário da Empresa';
+$string['success'] = 'Produto selecionado com sucesso!';
+$string['choose'] = 'Selecione uma opção';
+$string['product'] = 'Produto';
+$string['descricao'] = 'Descrição do produto';
+$string['forma'] = 'Forma de pagamento';
+$string['price'] = 'Preço';
+$string['productcode'] = 'Código do produto (nome curto)';
+$string['required'] = 'Este campo é obrigatório';
+$string['invalidcode'] = 'O código não pode conter espaços, acentos ou caracteres especiais';
+$string['codeexists'] = 'O código já existe. Por favor, escolha outro.';

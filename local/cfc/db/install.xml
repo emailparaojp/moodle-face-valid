@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMLDB PATH="local/cfc/db" VERSION="2024102400" COMMENT="Tabela para empresas e usuários de empresas">
+    <TABLES>
+
+        <!-- Tabela de empresas -->
+        <TABLE NAME="local_cfc" COMMENT="Tabelas para o gerenciamento de empresas e usuários de empresas">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="nome" TYPE="char" LENGTH="255" NOTNULL="true"/>
+                <FIELD NAME="razaosocial" TYPE="char" LENGTH="255" NOTNULL="true"/>
+                <FIELD NAME="cnpj" TYPE="char" LENGTH="255" NOTNULL="true"/>
+                <FIELD NAME="gestor" TYPE="text" NOTNULL="false"/>
+                <FIELD NAME="cor" TYPE="char" LENGTH="255" NOTNULL="true"/>
+                <FIELD NAME="logo" TYPE="char" LENGTH="255" NOTNULL="true"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+        </TABLE>
+ 
+        <TABLE NAME="local_cfc_users" COMMENT="Tabela que armazena usuários vinculados a empresas">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="empresa_id" TYPE="int" LENGTH="10" NOTNULL="true"/>
+                <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true"/>
+                <FIELD NAME="role" TYPE="char" LENGTH="50" NOTNULL="false"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="empresa_id_fk" TYPE="foreign" FIELDS="empresa_id" REFTABLE="local_empresa" REFFIELDS="id" ONDELETE="cascade"/>
+                <KEY NAME="user_id_fk" TYPE="foreign" FIELDS="user_id" REFTABLE="user" REFFIELDS="id" ONDELETE="cascade"/>
+            </KEYS>
+        </TABLE>
+        
+         
+
+    </TABLES>
+</XMLDB>

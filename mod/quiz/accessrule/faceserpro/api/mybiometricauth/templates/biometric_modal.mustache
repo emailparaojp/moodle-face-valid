@@ -1,0 +1,27 @@
+<div class="modal fade" id="biometric-modal" tabindex="-1" role="dialog" aria-labelledby="biometricModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="biometricModalLabel">{{#str}}pluginname, mod_quiz{{/str}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="{{#str}}close, core{{/str}}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <video id="webcam" autoplay class="w-100 mb-3" style="border: 1px solid #ccc;"></video>
+                <canvas id="captureCanvas" class="w-100 mb-3" width="640" height="480" style="display: none;"></canvas>
+                <div class="text-center">
+                    <button id="startCapture" class="btn btn-primary mb-2">{{#str}}startcapture, mod_quiz{{/str}}</button>
+                    <button id="validateCapture" class="btn btn-success mb-2" style="display: none;">{{#str}}validateimage, mod_quiz{{/str}}</button>
+                    <button id="retryCapture" class="btn btn-warning" style="display: none;">{{#str}}retry, mod_quiz{{/str}}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    require(['mod_quiz/accessrule_mybiometricauth/biometrics'], function(biometrics) {
+        biometrics.init();
+    });
+</script>

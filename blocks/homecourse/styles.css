@@ -1,0 +1,36 @@
+.homecourse .homebg{
+    box-shadow: 0 0 10px #ccc;
+    position: relative;
+    overflow: hidden;
+    max-width: 500px;
+    width: 90%;
+    display: inline-block;
+    height: auto;
+    min-height: 220px;
+    text-decoration: none !important;
+}
+.item .imagem-curso {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    display: block;
+    height: 96px;
+}
+.curso-container {
+    padding: 10px;
+}
+.curso-container h4 {
+    height: 50px;
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 14px;
+}
+.sumario {
+    height: 36px;
+    font-size: 11px;
+    line-height: 12px;
+    overflow: hidden;
+}
+.block_homecourse .card-title{
+    display:none;
+}
