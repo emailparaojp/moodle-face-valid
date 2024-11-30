@@ -25,7 +25,7 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.1.0",
+        "php": ">=8.0",
         "ext-iconv": "*",
         "ext-mbstring": "*",
         "ext-curl": "*",
@@ -44,7 +44,8 @@
         "ext-json": "*",
         "ext-hash": "*",
         "ext-fileinfo": "*",
-        "ext-sodium": "*"
+        "ext-sodium": "*",
+        "intervention/image": "^2.7"
     },
     "suggest": {
         "ext-mysqli": "Needed when Moodle uses MySQL or MariaDB database.",

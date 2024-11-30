@@ -271,48 +271,69 @@ if (!empty($gradinginfo->errors)) {
         echo $OUTPUT->render($errortext);
     }
 }
+    $expectedHash = hash('sha256', 'true');
+// Verificar se o cookie está definido
+    if (isset($_COOKIE['isValidated'])) {
+        // Obter o valor do cookie
+        $cookieValue = $_COOKIE['isValidated'];
 
-if (isguestuser()) {
-    // Guests can't do a quiz, so offer them a choice of logging in or going back.
-    echo $output->view_page_guest($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
-} else if (!isguestuser() && !($canattempt || $canpreview
-          || $viewobj->canreviewmine)) {
-    // If they are not enrolled in this course in a good enough role, tell them to enrol.
-    echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
-} else {
-    echo $output->view_page($course, $quiz, $cm, $context, $viewobj);
-}
+        // Comparar o valor do cookie com o valor esperado
+        if ($cookieValue === $expectedHash) {
+            if (isguestuser()) {
+                // Guests can't do a quiz, so offer them a choice of logging in or going back.
+                echo $output->view_page_guest($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
+            } else if (!isguestuser() && !($canattempt || $canpreview
+                    || $viewobj->canreviewmine)) {
+                // If they are not enrolled in this course in a good enough role, tell them to enrol.
+                echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
+            }
+        } else {
+            // botão para abrir o modal #validationFace
+            echo $OUTPUT->notification('Você precisa validar seu rosto para iniciar o quiz.', 'notifyproblem');
 
-// Verifica se o usuário está validado.
-$quiz = $DB->get_record('quiz', ['id' => $quiz->id], '*', MUST_EXIST);
+            echo html_writer::link(
+                '#validationFace',
+                'Validar meu rosto - modal',
+                ['class' => 'btn btn-primary', 'data-toggle' => 'modal', 'data-target' => '#validationFace', 'data-quizid' => $urlId]
+            );
+        }
+    } else {
+        echo $OUTPUT->notification('Você precisa validar seu rosto para iniciar o quiz.', 'notifyproblem');
+        // botão para abrir o modal #validationFace
+        echo html_writer::link(
+            '#validationFace',
+            'Validar meu rosto - modal',
+            ['class' => 'btn btn-primary', 'data-toggle' => 'modal', 'data-target' => '#validationFace', 'data-quizid' => $urlId]
+        );
+    }
+    $quiz = $DB->get_record('quiz', ['id' => $quiz->id], '*', MUST_EXIST);
 
 // Obter status de validação do usuário.
-$userid = $USER->id;
-$validation = $DB->get_record('user_validation', ['userid' => $userid]);
 
-$GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-$urlId = $GET['id'];
-var_dump($urlId);
-if (!$validation || !$validation->validated) {
-    echo $OUTPUT->notification('Você ainda não foi validado.', 'notifyproblem');
+    $GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
+    $urlId = $GET['id'];
+// Verifica se o usuário foi validado
+    $userid = $USER->id;
+?>
+    <!-- Modal -->
+    <div class="modal fade" id="validationFace" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Validação Facil</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php
+                    require_once __DIR__ . '/validate-face.php';
+                    ?>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    // Botão para iniciar a validação facial.
-    $validation_url = new moodle_url('validate-face.php', ['quizid' => $urlId]);
-    echo html_writer::link(
-        $validation_url,
-        'Validar meu rosto',
-        ['class' => 'btn btn-primary']
-    );
-} else {
-    echo $OUTPUT->notification('Você já foi validado! Pode iniciar o quiz.', 'notifysuccess');
-
-    // Botão para iniciar o quiz.
-    $start_quiz_url = new moodle_url('/mod/quiz/startattempt.php', ['quizid' => $quizid]);
-    echo html_writer::link(
-        $start_quiz_url,
-        'Iniciar o quiz',
-        ['class' => 'btn btn-success']
-    );
-}
+<?php
 
 echo $OUTPUT->footer();

@@ -1,188 +1,202 @@
 <?php
-require_once('../../config.php');
-
-// Recebe o ID do quiz
-$quizid = required_param('quizid', PARAM_INT);
-
-// Configuração inicial do Moodle
-require_login();
-$PAGE->set_url(new moodle_url('/mod/quiz/validate-face.php', ['quizid' => $quizid]));
-$PAGE->set_title('Validação Facial');
-$PAGE->set_heading('Validação Facial');
-
-// Renderização do cabeçalho
-echo $OUTPUT->header();
+require_once '../../config.php';
 ?>
+<style>
+    video, canvas {
+        display: block;
+        margin: 10px auto;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        width: 300px;
+        height: 300px;
+    }
+    button, input {
+        margin: 10px;
+        padding: 10px;
+        font-size: 16px;
+    }
+    #status {
+        margin: 20px;
+        font-weight: bold;
+    }
+    .error {
+        color: red;
+    }
+    .success {
+        color: green;
+    }
+</style>
+</style>
+<div class="container mt-5">
+    <form id="validationForm" class="needs-validation" novalidate>
+        <div class="form-group">
+            <label for="cpf">CPF:</label>
+            <input type="text" class="form-control" id="cpf" required placeholder="Digite o CPF">
+            <div class="invalid-feedback">Por favor, insira um CPF válido.</div>
+        </div>
 
-<p>Posicione seu rosto na câmera e clique em "Validar".</p>
+        <div class="form-group">
+            <label for="video">Captura de Vídeo:</label>
+            <video id="video" autoplay class="w-100 mb-3"></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+        </div>
 
-<!-- Vídeo da câmera -->
-<video id="camera" autoplay playsinline width="320" height="240"></video>
+        <div class="form-group d-flex justify-content-between">
+            <button type="button" class="btn btn-primary" id="capture">Capturar Foto</button>
+            <button type="submit" class="btn btn-success">Validar</button>
+        </div>
+        <p id="status"></p>
+    </form>
+</div>
 
-<!-- Canvas para capturar a imagem -->
-<canvas id="snapshot" style="display: none;"></canvas>
 
-<!-- Botões -->
-<button id="capture" class="btn btn-primary">Capturar</button>
-<form id="validation-form" method="POST" style="display: none;">
-    <input type="hidden" name="face_image" id="face_image">
-    <button type="submit" class="btn btn-success">Validar</button>
-</form>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('capture');
+        const form = document.getElementById('validationForm');
+        const status = document.getElementById('status');
 
-<script>
-    // Acessar a câmera
-    const video = document.getElementById('camera');
-    const canvas = document.getElementById('snapshot');
-    const faceImageInput = document.getElementById('face_image');
-    const validationForm = document.getElementById('validation-form');
+        let capturedImageBase64 = null;
 
-    // Iniciar a câmera
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then((stream) => {
-            video.srcObject = stream;
-        })
-        .catch((err) => {
-            console.error("Erro ao acessar a câmera:", err);
-            alert("Não foi possível acessar a câmera. Verifique as permissões.");
+        // Ativar câmera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => video.srcObject = stream)
+            .catch(() => {
+                status.textContent = "Erro ao acessar câmera. Verifique as permissões.";
+                status.className = "error";
+            });
+
+        // Capturar imagem e converter para Base64
+        captureButton.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            capturedImageBase64 = canvas.toDataURL('image/png').split(',')[1]; // Captura como PNG
+            status.textContent = "Foto capturada!";
+            status.className = "success";
         });
 
-    // Capturar a imagem
-    document.getElementById('capture').addEventListener('click', () => {
-        const context = canvas.getContext('2d');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Submeter dados
+        const errorMessages = {
+            DV001: "LGPD: Dados de menor de idade. O Datavalid não valida dados de criança e adolescente.",
+            DV002: "Dados encontrados na base não atendem aos requisitos mínimos para validação.",
+            DV010: "CPF inválido. Verifique se há algo de errado ou incompleto no CPF enviado para validação.",
+            DV040: "Imagem da face não encontrada nas bases. O CPF utilizado na validação não possui cadastro de imagem da face na base de dados biométrica.",
+            DV041: "Não foi possível reconhecer a face na imagem enviada. Verifique se o rosto está claro, bem exposto e sem obstruções.",
+            DV042: "Tamanho da imagem da face inválido. Verifique os requisitos mínimos de tamanho da imagem (mínimo 250x250 pixels).",
+            DV045: "Qualidade baixa da imagem da face. Reenvie uma imagem mais nítida e bem iluminada.",
+            DV046: "Foi reconhecido mais de uma face na imagem",
+            DV047: "Formato da imagem da face inválido",
+            DV061: "Baixa qualidade da imagem da face para checagem de vivacidade (liveness)\n",
+            DV062: "Imagem da face não foi reconhecida como real na checagem de vivacidade.",
+            // Adicione mais códigos e mensagens conforme necessário...
+        };
 
-        // Converte o conteúdo do canvas em uma string base64
-        const imageData = canvas.toDataURL('image/png');
-        faceImageInput.value = imageData;
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-        // Exibe o botão de validação
-        validationForm.style.display = 'block';
-    });
-</script>
+            const cpf = document.getElementById('cpf').value;
 
-<?php
-// Se o formulário for enviado, processa a imagem
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['face_image'])) {
-    global $DB, $USER;
+            if (!cpf || !capturedImageBase64) {
+                status.textContent = "Preencha o CPF e capture uma foto antes de validar.";
+                status.className = "error";
+                return;
+            }
 
-    // Obtém a imagem base64
-    $faceImageBase64 = $_POST['face_image'];
+            status.textContent = "Validando...";
+            status.className = "";
 
-    // Converte o Base64 para um arquivo de imagem real
-    $imageData = explode(',', $faceImageBase64)[1];
-    $decodedImage = base64_decode($imageData);
-    $imagePath = $CFG->dataroot . "/temp/face_image_{$USER->id}.png";
+            try {
+                const response = await fetch('validate-face-backend.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cpf,
+                        image: capturedImageBase64,
+                    }),
+                });
 
-    // Salva a imagem
-    file_put_contents($imagePath, $decodedImage);
+                const result = await response.json();
 
-    // Realiza a validação facial com a API do SERPRO
-    $validation_result = validar_com_serpro($faceImageBase64, $USER->cpf);
-var_dump($validation_result, $faceImageBase64);
-    // Se a validação for bem-sucedida, atualiza o banco de dados
-    if ($validation_result['status'] === 'validado') {
-        // Registra a validação no banco
-        $userid = $USER->id;
-        $record = $DB->get_record('user_validation', ['userid' => $userid]);
+                if (result.success) {
+                    status.textContent = `Validação concluída com sucesso! Similaridade: ${result.data.similarity || "N/A"}%`;
+                    status.className = "success";
+                    await changeCookieValue();
+                    setTimeout(() => {
+                        url = this.location.href;
+                        // se tiver o parametro isValidated, remove
+                        url = url.replace(/&isValidated=true/g, '');
+                        window.location.href = url;
+                    }, 2000);
+                } else {
+                    const errorCode = extractErrorCode(result.details?.message || "");
+                    const errorMessage = errorMessages[errorCode] || "Erro desconhecido. Consulte a documentação da API.";
 
-        if ($record) {
-            // Atualiza o registro existente
-            $record->validated = 1;
-            $record->timevalidated = time();
-            $DB->update_record('user_validation', $record);
-        } else {
-            // Cria um novo registro
-            $newrecord = new stdClass();
-            $newrecord->userid = $userid;
-            $newrecord->validated = 1;
-            $newrecord->timevalidated = time();
-            $DB->insert_record('user_validation', $newrecord);
+                    status.textContent = `Erro: ${errorMessage} (Código: ${errorCode})`;
+                    status.className = "error";
+                    console.error(`Detalhes do erro: ${JSON.stringify(result.details, null, 2)}`);
+
+                    setTimeout(() => {
+                        url = this.location.href;
+                        url = url.replace(/&isValidated=true/g, '');
+                        window.location.href = url;
+                    }, 2000);
+                }
+            } catch (err) {
+                status.textContent = "Erro inesperado ao processar a validação.";
+                status.className = "error";
+                console.error(err);
+            }
+        });
+
+        // Função para extrair o código de erro do JSON interno na mensagem
+        function extractErrorCode(message) {
+            try {
+                const parsedMessage = JSON.parse(message);
+                return parsedMessage.code || null;
+            } catch (e) {
+                return null; // Retorna null caso a mensagem não seja um JSON válido
+            }
         }
 
-        // Redireciona para o quiz após a validação
-        redirect(new moodle_url('/mod/quiz/view.php', ['id' => $quizid]));
-    } else {
-        // Se a validação falhar
-        echo $OUTPUT->notification('Falha na validação facial. Tente novamente.', 'notifyproblem');
-    }
-}
 
-// Função para validação na API do SERPRO
-function validar_com_serpro($imagem_base64, $cpf) {
-    // Configurações da API
-    $login_url = "http://34.203.73.5:7000/login"; // URL de login
-    $validation_url = "https://api.serpro.gov.br/biometria/valida"; // URL de validação facial
+        // Função para gerar o SHA-256 do valor "true"
+        async function setCookie(value) {
+            // Convertendo o valor para ArrayBuffer
+            const encoder = new TextEncoder();
+            const data = encoder.encode(value);
 
-    $client_id = "cafe_ead"; // Client ID
-    $client_secret = "d3s4N8O'08w)"; // Client Secret
+            // Gerando o hash SHA-256
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer)); // Converte para array de bytes
+            const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join(''); // Convertendo para hex
 
-    // 1. Obter o token de autenticação
-    $login_data = json_encode([
-        'usuario' => $client_id,
-        'senha' => $client_secret
-    ]);
+            // Criando o cookie com validade de 2 minutos
+            const expires = new Date();
+            expires.setMinutes(expires.getMinutes() + 2); // Expira em 2 minutos
 
-    // Iniciar a requisição de login para obter o token
-    $ch = curl_init($login_url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Accept: application/json",
-        "Content-Type: application/json"
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $login_data);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            // Setando ou alterando o cookie
+            document.cookie = `isValidated=${hashHex}; expires=${expires.toUTCString()}; path=/`;
+        }
 
-    $login_response = curl_exec($ch);
-    curl_close($ch);
+        // Função para verificar se o cookie existe e alterar seu valor
+        async function changeCookieValue() {
+            // Alterando o cookie para "true" (ou outro valor conforme a regra de negócio)
+            await setCookie("true");
+        }
 
-    // Verificar se houve erro ao obter o token
-    if ($login_response === false) {
-        return ['status' => 'erro', 'mensagem' => 'Erro de conexão ao tentar autenticar'];
-    }
-
-    $login_data = json_decode($login_response, true);
-
-    // Verificar se o login retornou um token válido
-    if (!isset($login_data['token'])) {
-        return ['status' => 'erro', 'mensagem' => 'Falha na autenticação: ' . $login_data['message'] ?? 'Token não encontrado', 'data' => $login_data];
-    }
-
-    // Obter o token de acesso
-    $access_token = $login_data['token'];
-
-    // 2. Enviar a imagem facial para validação
-    $validation_data = json_encode([
-        'imagem' => $imagem_base64,
-        'cpf' => $cpf,
-    ]);
-
-    // Iniciar a requisição de validação facial
-    $ch = curl_init($validation_url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $access_token",
-        "Content-Type: application/json"
-    ]);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $validation_data);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $validation_response = curl_exec($ch);
-    curl_close($ch);
-
-    // Verificar resposta da validação
-    if ($validation_response === false) {
-        return ['status' => 'erro', 'mensagem' => 'Erro de conexão ao tentar validar a biometria', 'data' => $validation_response];
-    }
-
-    // Decodificar a resposta da validação facial
-    $validation_data = json_decode($validation_response, true);
-
-    // Retornar a resposta da validação
-    return $validation_data;
-}
+        $(document).ready(function(){
+            // Aplicar a máscara ao campo, mas no valor real (no submit) somente números
+            $('#cpf').inputmask('999.999.999-99', {
+                oncomplete: function () {
+                    // Quando o campo estiver completo, podemos pegar o valor como somente números
+                    var cpfValue = $('#cpf').val().replace(/\D/g, ''); // Remove todos os não números
+                    $('#cpf').val(cpfValue); // Atualiza o valor para apenas números
+                }
+            });
+        });
 
 
-echo $OUTPUT->footer();
-?>
+    </script>
