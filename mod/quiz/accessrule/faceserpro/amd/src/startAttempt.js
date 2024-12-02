@@ -13,7 +13,7 @@ define(['jquery', 'core/ajax', 'core/notification'],
                 // eslint-disable-next-line no-console
                 console.log('Face not found');
             } else {
-                // eslint-disable-next-line no-console
+
                 faceImages.forEach((cnv) => {
                     croppedImage.src = cnv.toDataURL();
                 });
@@ -23,9 +23,9 @@ define(['jquery', 'core/ajax', 'core/notification'],
             // eslint-disable-next-line no-undef
             const output = await faceapi.detectAllFaces(input);
             if (output.length === 0) {
-                // eslint-disable-next-line no-console
+
             } else {
-                // eslint-disable-next-line no-console
+
                 let detections = output[0].box;
                 await extractFaceFromBox(input, detections, croppedImage);
             }
@@ -46,7 +46,7 @@ define(['jquery', 'core/ajax', 'core/notification'],
                     const context = canvas.getContext('2d');
                     canvas.width = props.imagewidth;
 
-                    canvas.height = canvas.width / (4/3);
+                    canvas.height = canvas.width / (4 / 3);
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
                     var data = canvas.toDataURL('image/png');
                     photo.setAttribute('src', data);
@@ -64,13 +64,13 @@ define(['jquery', 'core/ajax', 'core/notification'],
                     let faceFound;
                     let faceImage;
                     if (croppedImage.src) {
-                        // eslint-disable-next-line no-console
-                        // console.log("Face found");
+
+                        // Console.log("Face found");
                         faceFound = 1;
                         faceImage = croppedImage.src;
                     } else {
-                        // eslint-disable-next-line no-console
-                        // console.log("Face not found");
+
+                        // Console.log("Face not found");
                         faceFound = 0;
                         faceImage = "";
                     }
@@ -107,7 +107,7 @@ define(['jquery', 'core/ajax', 'core/notification'],
                                 $("#video").css("border", "10px solid red");
                                 $("#face_validation_result").html('<span style="color: red">Face not matched</span>');
                             }
-                        }  else {
+                        } else {
                             document.getElementById('loading_spinner').style.display = 'none';
                             if (video) {
                                 Notification.addNotification({

@@ -22,6 +22,7 @@
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 use mod_quiz\access_manager;
 use mod_quiz\output\list_of_attempts;
 use mod_quiz\output\renderer;
@@ -60,7 +61,7 @@ $canpreview = has_capability('mod/quiz:preview', $context);
 // Create an object to manage all the other (non-roles) access rules.
 $timenow = time();
 $accessmanager = new access_manager($quizobj, $timenow,
-        has_capability('mod/quiz:ignoretimelimits', $context, null, false));
+    has_capability('mod/quiz:ignoretimelimits', $context, null, false));
 
 // Trigger course_module_viewed event and completion.
 quiz_view($quiz, $course, $cm, $context);
@@ -86,7 +87,7 @@ if ($unfinishedattempt = quiz_get_user_attempt_unfinished($quiz->id, $USER->id))
     $quizobj->create_attempt_object($unfinishedattempt)->handle_if_time_expired(time(), false);
 
     $unfinished = $unfinishedattempt->state == quiz_attempt::IN_PROGRESS ||
-            $unfinishedattempt->state == quiz_attempt::OVERDUE;
+        $unfinishedattempt->state == quiz_attempt::OVERDUE;
     if (!$unfinished) {
         $lastfinishedattempt = $unfinishedattempt;
     }
@@ -173,7 +174,7 @@ if ($attempts) {
     $viewobj->attemptcolumn  = $quiz->attempts != 1;
 
     $viewobj->gradecolumn    = $someoptions->marks >= question_display_options::MARK_AND_MAX &&
-            quiz_has_grades($quiz);
+        quiz_has_grades($quiz);
     $viewobj->markcolumn     = $viewobj->gradecolumn && ($quiz->grade != $quiz->sumgrades);
     $viewobj->overallstats   = $lastfinishedattempt && $alloptions->marks >= question_display_options::MARK_AND_MAX;
 
@@ -184,7 +185,7 @@ $viewobj->timenow = $timenow;
 $viewobj->numattempts = $numattempts;
 $viewobj->mygrade = $mygrade;
 $viewobj->moreattempts = $unfinished ||
-        !$accessmanager->is_finished($numattempts, $lastfinishedattempt);
+    !$accessmanager->is_finished($numattempts, $lastfinishedattempt);
 $viewobj->mygradeoverridden = $mygradeoverridden;
 $viewobj->gradebookfeedback = $gradebookfeedback;
 $viewobj->lastfinishedattempt = $lastfinishedattempt;
@@ -195,7 +196,7 @@ $viewobj->startattempturl = $quizobj->start_attempt_url();
 
 if ($accessmanager->is_preflight_check_required($unfinishedattemptid)) {
     $viewobj->preflightcheckform = $accessmanager->get_preflight_check_form(
-            $viewobj->startattempturl, $unfinishedattemptid);
+        $viewobj->startattempturl, $unfinishedattemptid);
 }
 $viewobj->popuprequired = $accessmanager->attempt_must_be_in_popup();
 $viewobj->popupoptions = $accessmanager->get_popup_options();
@@ -204,7 +205,7 @@ $viewobj->popupoptions = $accessmanager->get_popup_options();
 $viewobj->infomessages = $viewobj->accessmanager->describe_rules();
 if ($quiz->attempts != 1) {
     $viewobj->infomessages[] = get_string('gradingmethod', 'quiz',
-            quiz_get_grading_option_name($quiz->grademethod));
+        quiz_get_grading_option_name($quiz->grademethod));
 }
 
 // Inform user of the grade to pass if non-zero.
@@ -233,7 +234,7 @@ if (!$viewobj->quizhasquestions) {
             $viewobj->buttontext = get_string('previewquizstart', 'quiz');
         } else if ($canattempt) {
             $viewobj->preventmessages = $viewobj->accessmanager->prevent_new_attempt(
-                    $viewobj->numattempts, $viewobj->lastfinishedattempt);
+                $viewobj->numattempts, $viewobj->lastfinishedattempt);
             if ($viewobj->preventmessages) {
                 $viewobj->buttontext = '';
             } else if ($viewobj->numattempts == 0) {
@@ -261,7 +262,7 @@ if (!$viewobj->quizhasquestions) {
 }
 
 $viewobj->showbacktocourse = ($viewobj->buttontext === '' &&
-        course_get_format($course)->has_view_page());
+    course_get_format($course)->has_view_page());
 
 echo $OUTPUT->header();
 
@@ -271,69 +272,16 @@ if (!empty($gradinginfo->errors)) {
         echo $OUTPUT->render($errortext);
     }
 }
-    $expectedHash = hash('sha256', 'true');
-// Verificar se o cookie está definido
-    if (isset($_COOKIE['isValidated'])) {
-        // Obter o valor do cookie
-        $cookieValue = $_COOKIE['isValidated'];
 
-        // Comparar o valor do cookie com o valor esperado
-        if ($cookieValue === $expectedHash) {
-            if (isguestuser()) {
-                // Guests can't do a quiz, so offer them a choice of logging in or going back.
-                echo $output->view_page_guest($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
-            } else if (!isguestuser() && !($canattempt || $canpreview
-                    || $viewobj->canreviewmine)) {
-                // If they are not enrolled in this course in a good enough role, tell them to enrol.
-                echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
-            }
-        } else {
-            // botão para abrir o modal #validationFace
-            echo $OUTPUT->notification('Você precisa validar seu rosto para iniciar o quiz.', 'notifyproblem');
-
-            echo html_writer::link(
-                '#validationFace',
-                'Validar meu rosto - modal',
-                ['class' => 'btn btn-primary', 'data-toggle' => 'modal', 'data-target' => '#validationFace', 'data-quizid' => $urlId]
-            );
-        }
-    } else {
-        echo $OUTPUT->notification('Você precisa validar seu rosto para iniciar o quiz.', 'notifyproblem');
-        // botão para abrir o modal #validationFace
-        echo html_writer::link(
-            '#validationFace',
-            'Validar meu rosto - modal',
-            ['class' => 'btn btn-primary', 'data-toggle' => 'modal', 'data-target' => '#validationFace', 'data-quizid' => $urlId]
-        );
-    }
-    $quiz = $DB->get_record('quiz', ['id' => $quiz->id], '*', MUST_EXIST);
-
-// Obter status de validação do usuário.
-
-    $GET = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
-    $urlId = $GET['id'];
-// Verifica se o usuário foi validado
-    $userid = $USER->id;
-?>
-    <!-- Modal -->
-    <div class="modal fade" id="validationFace" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Validação Facil</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <?php
-                    require_once __DIR__ . '/validate-face.php';
-                    ?>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<?php
+if (isguestuser()) {
+    // Guests can't do a quiz, so offer them a choice of logging in or going back.
+    echo $output->view_page_guest($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
+} else if (!isguestuser() && !($canattempt || $canpreview
+        || $viewobj->canreviewmine)) {
+    // If they are not enrolled in this course in a good enough role, tell them to enrol.
+    echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $viewobj->infomessages, $viewobj);
+} else {
+    echo $output->view_page($course, $quiz, $cm, $context, $viewobj);
+}
 
 echo $OUTPUT->footer();

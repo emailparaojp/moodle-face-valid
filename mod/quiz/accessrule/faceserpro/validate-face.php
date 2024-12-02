@@ -26,53 +26,6 @@ require_once '../../config.php';
         color: green;
     }
 </style>
-</style>
-<div class="container mt-5">
-    <form id="validationForm" class="needs-validation" novalidate>
-        <div class="form-group">
-            <label for="cpf">CPF:</label>
-            <input type="text" class="form-control" id="cpf" required placeholder="Digite o CPF">
-            <div class="invalid-feedback">Por favor, insira um CPF válido.</div>
-        </div>
-
-        <div class="form-group">
-            <label for="video">Captura de Vídeo:</label>
-            <video id="video" autoplay class="w-100 mb-3"></video>
-            <canvas id="canvas" style="display: none;"></canvas>
-        </div>
-
-        <div class="form-group d-flex justify-content-between">
-            <button type="button" class="btn btn-primary" id="capture">Capturar Foto</button>
-            <button type="submit" class="btn btn-success">Validar</button>
-        </div>
-        <p id="status"></p>
-    </form>
-</div>
-<style>
-    video, canvas {
-        display: block;
-        margin: 10px auto;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        width: 300px;
-        height: 300px;
-    }
-    button, input {
-        margin: 10px;
-        padding: 10px;
-        font-size: 16px;
-    }
-    #status {
-        margin: 20px;
-        font-weight: bold;
-    }
-    .error {
-        color: red;
-    }
-    .success {
-        color: green;
-    }
-</style>
 
 
     <script>
